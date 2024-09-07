@@ -3,109 +3,109 @@ import Goblin from "../goblin/goblin";
 import GameState from "../game-state/game-state";
 
 export default class GamePlay {
-    constructor() {
-        this._board = undefined;
-        this._boardSize = 4;
-        this._cellClickListeners = [];
-        this._container = undefined;
-        this._goblin = new Goblin();
-        this._goblinCellIndex = undefined;
-        this._isOver = false;
-        this._state = undefined;
-        this._waitingTimer = undefined;
+  constructor() {
+    this._board = undefined;
+    this._boardSize = 4;
+    this._cellClickListeners = [];
+    this._container = undefined;
+    this._goblin = new Goblin();
+    this._goblinCellIndex = undefined;
+    this._isOver = false;
+    this._state = undefined;
+    this._waitingTimer = undefined;
+  }
+
+  addCellClickListener(callback) {
+    this._cellClickListeners.push(callback);
+  }
+
+  bindToDOM(container) {
+    if (!(container instanceof HTMLElement)) {
+      throw new Error("container is not an HTMLElement");
     }
 
-    addCellClickListener(callback) {
-        this._cellClickListeners.push(callback);
+    this._container = container;
+  }
+
+  checkBinding() {
+    if (this._container === undefined) {
+      throw new Error("GamePlay is not bind to DOM");
     }
+  }
 
-    bindToDOM(container) {
-        if (!(container instanceof HTMLElement)) {
-            throw new Error ("container is not an HTMLElement");
-        }
+  checkGoblinCellIndex(index) {
+    return this._goblinCellIndex === index;
+  }
 
-        this._container = container;
-    }
+  drawUi() {
+    this.checkBinding();
 
-    checkBinding() {
-        if (this._container === undefined) {
-            throw new Error("GamePlay is not bind to DOM");
-        }
-    }
-
-    checkGoblinCellIndex(index) {
-        return this._goblinCellIndex === index;
-    }
-
-    drawUi() {
-        this.checkBinding();
-
-        this._container.classList.add("game-container--game-on");
-        this._container.innerHTML = `
+    this._container.classList.add("game-container--game-on");
+    this._container.innerHTML = `
             <div class="game-container__header">
                 <div class="game-container__state game-state"></div>
             </div>
             <div class="game-container__board board"></div>
         `;
 
-        this._state = new GameState(this._container.querySelector(".game-state"));
-        this._state.drawUi();
+    this._state = new GameState(this._container.querySelector(".game-state"));
+    this._state.drawUi();
 
-        this._board = new Board(
-            this._container.querySelector(".board"),
-            this._boardSize,
-        );
+    this._board = new Board(
+      this._container.querySelector(".board"),
+      this._boardSize,
+    );
 
-        this._board.drawCells();
+    this._board.drawCells();
 
-        this._board.cells.forEach((cell) => {
-            cell.addEventListener("click", (event) => this.onCellClick(event));
-          }); 
-    }
+    this._board.cells.forEach((cell) => {
+      cell.addEventListener("click", (event) => this.onCellClick(event));
+    });
+  }
 
-    gameOver() {
-        this._isOver = true;
-        this._container.classList.remove("game-container--game-on");
+  gameOver() {
+    this._isOver = true;
+    this._container.classList.remove("game-container--game-on");
 
-        alert(`Игра окончена! Ваш счёт ${this._state.hits} баллов`);
-    }
+    alert(`Игра окончена! Ваш счёт ${this._state.hits} баллов`);
+  }
 
-    get isOver() {
-        return this._isOver;
-    }
+  get isOver() {
+    return this._isOver;
+  }
 
-    goblinIsCaught() {
-        clearTimeout(this._waitingTimer);
-        this._state.hits += 1;
-    }
+  goblinIsCaught() {
+    clearTimeout(this._waitingTimer);
+    this._state.hits += 1;
+  }
 
-    onCellClick(event) {
-        const index = this._board.cells.indexOf(event.currentTarget);
+  onCellClick(event) {
+    const index = this._board.cells.indexOf(event.currentTarget);
 
-        this._cellClickListeners.forEach((o) => o.call(null, index));
-    }
+    this._cellClickListeners.forEach((o) => o.call(null, index));
+  }
 
-    redrawGoblinPosition() {
-        let index;
+  redrawGoblinPosition() {
+    let index;
 
-        do {
-            index = Math.floor(Math.random() * this._board.cells.length);
-        } while (this.checkGoblinCellIndex(index));
+    do {
+      index = Math.floor(Math.random() * this._board.cells.length);
+    } while (this.checkGoblinCellIndex(index));
 
-        this._goblinCellIndex = index;
-        this._goblin.setParent(this._board.cells[index]);
-    }
+    this._goblinCellIndex = index;
+    this._goblin.setParent(this._board.cells[index]);
+  }
 
-    waitingToMove() {
-        this._waitingTimer = setTimeout(() => {
-            this._state.misses += 1;
+  waitingToMove() {
+    this._waitingTimer = setTimeout(() => {
+      this._state.misses += 1;
 
-            if (this._state.misses < 5) {
-                this.redrawGoblinPosition();
-                this.waitingToMove();
-            } else {
-                this.gameOver();
-            }
-        }, 1000);
-    }
+      if (this._state.misses < 5) {
+        this.redrawGoblinPosition();
+        this.waitingToMove();
+      } else {
+        this.gameOver();
+      }
+    }, 1000);
+  }
 }
