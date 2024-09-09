@@ -19,7 +19,6 @@ export default class GameController {
     console.log("onCellClick", index);
 
     if (this._gamePlay.checkGoblinCellIndex(index)) {
-      this._gamePlay.goblinIsCaught();
       this._gamePlay.redrawGoblinPosition();
       this._gamePlay.waitingToMove();
     }

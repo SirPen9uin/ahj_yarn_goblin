@@ -82,6 +82,15 @@ export default class GamePlay {
   onCellClick(event) {
     const index = this._board.cells.indexOf(event.currentTarget);
 
+    if (this.checkGoblinCellIndex(index)) {
+      this.goblinIsCaught();
+    } else {
+      this._state.misses += 1;
+      if (this._state.misses >= 5) {
+        this.gameOver();
+      }
+    }
+
     this._cellClickListeners.forEach((o) => o.call(null, index));
   }
 
@@ -98,13 +107,9 @@ export default class GamePlay {
 
   waitingToMove() {
     this._waitingTimer = setTimeout(() => {
-      this._state.misses += 1;
-
-      if (this._state.misses < 5) {
+      if (!this._isOver) {
         this.redrawGoblinPosition();
         this.waitingToMove();
-      } else {
-        this.gameOver();
       }
     }, 1000);
   }
